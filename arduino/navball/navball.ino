@@ -32,7 +32,7 @@ void setup() {
   pinMode(PIN_OVERFLOW, OUTPUT);
   pinMode(PIN_PROCESS, OUTPUT);
   dataTest();
-  headingStepper.setMaxSpeed(stepsPerRevolution*2);
+  headingStepper.setMaxSpeed(stepsPerRevolution/2);
   headingStepper.setAcceleration(stepsPerRevolution/accelRatio);
   Serial.begin(115200);
 
@@ -59,6 +59,7 @@ void dataTest() {
 void loop() {
   receiveData();
   parseData();
+  process();
   headingStepper.run();
 }
 
@@ -111,17 +112,16 @@ void parseData() {
 
     strtokIndx = strtok(NULL, "|");
     rollRequested = atof(strtokIndx);
-
-    // we can let another packet come in
-    packetReceived = false;
-
-    process();
-    rateOk();
   }
 }
 
 void process() {
-  moveHeading();
+  if (packetReceived) {
+    // we can let another packet come in
+    packetReceived = false;
+    rateOk();
+    moveMotor(&headingStepper, headingRequested, &heading);
+  }
 }
 
 float smallestAngle(float origin, float target, int revolution) {
@@ -147,7 +147,7 @@ float rpm(float angle, float duration_sec) {
   return abs((angle * 60 / duration_sec) / 360);
 }
 
-void moveHeading() {
+void moveMotor(AccelStepper* stepper, float requested, float * current) {
   float delta;
   int stepsToMove;
 
@@ -158,28 +158,26 @@ void moveHeading() {
   int speedNeeded = 0;
   int currentPosition, desiredPosition;
 
-  if (headingRequested != heading) {
+  if (requested != *current) {
     currentTime = millis();
-    delta = smallestAngle(heading, headingRequested, 360);
+    delta = smallestAngle(*current, requested, 360);
     deltaSteps = angleToSteps(delta);
     if (lastTime) {
       secSinceLastMove = (currentTime - lastTime) / 1000.0;
       speedNeeded = abs(round(deltaSteps / secSinceLastMove));
     }
     lastTime = currentTime;
-    heading = headingRequested;
+    *current = requested;
     
-    currentPosition = fmod(fmod(headingStepper.currentPosition(), stepsPerRevolution) + stepsPerRevolution, stepsPerRevolution);
-    desiredPosition = angleToSteps(headingRequested);
+    currentPosition = fmod(fmod(stepper->currentPosition(), stepsPerRevolution) + stepsPerRevolution, stepsPerRevolution);
+    desiredPosition = angleToSteps(requested);
     stepsToMove = smallestAngle(currentPosition, desiredPosition, stepsPerRevolution);
-    if (speedNeeded) {
-      if (speedNeeded > 200) {
-        digitalWrite(PIN_PROCESS, HIGH);
-        headingStepper.move(stepsToMove*accelRatio);  // predicting where it's going
-      } else {
-        digitalWrite(PIN_PROCESS, LOW);
-        headingStepper.move(stepsToMove);
-      }
+    if (speedNeeded and speedNeeded > 200) {
+      digitalWrite(PIN_PROCESS, HIGH);
+      stepper->move(stepsToMove*accelRatio);  // predicting where it's going
+    } else {
+      digitalWrite(PIN_PROCESS, LOW);
+      stepper->move(stepsToMove);
     }
   }
 }
