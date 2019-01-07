@@ -9,13 +9,13 @@
 #define PIN_HEADING_3 9
 #define PIN_HEADING_4 11
 
-const int internalStepsPerRev = 32;
+const int internalStepsPerRev = 64;  // instead of 32 because half-step mode
 const float internalGearRatio = 64;
 const float externalGearRatio = 1.0;
 const float stepsPerRevolution = internalStepsPerRev * internalGearRatio * externalGearRatio;
 const int accelRatio = 8;
 
-AccelStepper  headingStepper(AccelStepper::FULL4WIRE, PIN_HEADING_1, PIN_HEADING_2, PIN_HEADING_3, PIN_HEADING_4);
+AccelStepper  headingStepper(AccelStepper::HALF4WIRE, PIN_HEADING_1, PIN_HEADING_2, PIN_HEADING_3, PIN_HEADING_4);
 
 const byte numChars = 32;
 char receivedChars[numChars];
@@ -172,7 +172,7 @@ void moveMotor(AccelStepper* stepper, float requested, float * current) {
     currentPosition = fmod(fmod(stepper->currentPosition(), stepsPerRevolution) + stepsPerRevolution, stepsPerRevolution);
     desiredPosition = angleToSteps(requested);
     stepsToMove = smallestAngle(currentPosition, desiredPosition, stepsPerRevolution);
-    if (speedNeeded and speedNeeded > 200) {
+    if (speedNeeded and speedNeeded > 512) {
       digitalWrite(PIN_PROCESS, HIGH);
       stepper->move(stepsToMove*accelRatio);  // predicting where it's going
     } else {
