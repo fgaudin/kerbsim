@@ -1,19 +1,21 @@
-#include <Stepper.h>
+#include <AccelStepper.h>
 #include <math.h>
 
+#define HALFSTEP 4
 #define PIN_OVERFLOW 3
 #define PIN_PROCESS 2
+#define PIN_HEADING_1 8
+#define PIN_HEADING_2 10
+#define PIN_HEADING_3 9
+#define PIN_HEADING_4 11
 
-const float maxRpm = 15;
 const int internalStepsPerRev = 32;
-//const float internalGearRatio = 25792.0/405;
 const float internalGearRatio = 64;
 const float externalGearRatio = 1.0;
-// const float externalGearRatio = 1.0 / 4;
 const float stepsPerRevolution = internalStepsPerRev * internalGearRatio * externalGearRatio;
+const int accelRatio = 8;
 
-// initialize the stepper library on pins 8 through 11:
-Stepper myStepper(internalStepsPerRev * internalGearRatio, 8, 10, 9, 11);
+AccelStepper  headingStepper(AccelStepper::FULL4WIRE, PIN_HEADING_1, PIN_HEADING_2, PIN_HEADING_3, PIN_HEADING_4);
 
 const byte numChars = 32;
 char receivedChars[numChars];
@@ -30,9 +32,10 @@ void setup() {
   pinMode(PIN_OVERFLOW, OUTPUT);
   pinMode(PIN_PROCESS, OUTPUT);
   dataTest();
-  myStepper.setSpeed(15);
-  Serial.begin(9600);
-    
+  headingStepper.setMaxSpeed(stepsPerRevolution*2);
+  headingStepper.setAcceleration(stepsPerRevolution/accelRatio);
+  Serial.begin(115200);
+
 }
 
 void rateOk() {
@@ -45,7 +48,7 @@ void rateKo() {
 
 void dataTest() {
   rateOk();
-  for(int i = 0; i<3; i++) {
+  for (int i = 0; i < 3; i++) {
     rateKo();
     delay(200);
     rateOk();
@@ -56,6 +59,7 @@ void dataTest() {
 void loop() {
   receiveData();
   parseData();
+  headingStepper.run();
 }
 
 void receiveData() {
@@ -78,7 +82,7 @@ void receiveData() {
         receivedChars[ndx] = rc;
         ndx++;
         if (ndx >= numChars) {
-            ndx = numChars - 1;
+          ndx = numChars - 1;
         }
       } else {
         receivedChars[ndx] = '\0'; // terminate the string
@@ -99,9 +103,9 @@ void parseData() {
 
     strcpy(tempChars, receivedChars);
 
-    strtokIndx = strtok(tempChars,"|");      // get the first part - the string
+    strtokIndx = strtok(tempChars, "|");     // get the first part - the string
     headingRequested = atof(strtokIndx);
- 
+
     strtokIndx = strtok(NULL, "|"); // this continues where the previous call left off
     pitchRequested = atof(strtokIndx);
 
@@ -117,18 +121,16 @@ void parseData() {
 }
 
 void process() {
-  digitalWrite(PIN_PROCESS, HIGH);
   moveHeading();
-  digitalWrite(PIN_PROCESS, LOW);
 }
 
-float smallestAngle(float origin, float target) {
+float smallestAngle(float origin, float target, int revolution) {
   float delta;
   delta = target - origin;
-  if (delta > 180) {
-    delta -= 360 ;
-  } else if (delta < -180) {
-    delta += 360;
+  if (delta > revolution / 2) {
+    delta -= revolution ;
+  } else if (delta < -revolution / 2) {
+    delta += revolution;
   }
   return delta;
 }
@@ -148,29 +150,36 @@ float rpm(float angle, float duration_sec) {
 void moveHeading() {
   float delta;
   int stepsToMove;
+
+  int deltaSteps;
   float deltaQuantified;
   unsigned long currentTime;
   float secSinceLastMove;
-  int rpmNeeded;
+  int speedNeeded = 0;
+  int currentPosition, desiredPosition;
 
   if (headingRequested != heading) {
     currentTime = millis();
-    secSinceLastMove = (currentTime - lastTime) / 1000;
-    lastTime = currentTime;
-
-    delta = smallestAngle(heading, headingRequested);
-    stepsToMove = angleToSteps(delta);
-    deltaQuantified = stepsToAngle(stepsToMove);
-    heading = fmod(heading + deltaQuantified + 360, 360);
-    rpmNeeded = rpm(deltaQuantified, secSinceLastMove);
-    rpmNeeded = 15;
-    if (rpmNeeded > maxRpm) {
-      rateKo();
-    } else {
-      rateOk();
+    delta = smallestAngle(heading, headingRequested, 360);
+    deltaSteps = angleToSteps(delta);
+    if (lastTime) {
+      secSinceLastMove = (currentTime - lastTime) / 1000.0;
+      speedNeeded = abs(round(deltaSteps / secSinceLastMove));
     }
-    rpmNeeded = constrain(1, rpmNeeded, maxRpm);
-    myStepper.setSpeed(rpmNeeded);
-    myStepper.step(stepsToMove);
+    lastTime = currentTime;
+    heading = headingRequested;
+    
+    currentPosition = fmod(fmod(headingStepper.currentPosition(), stepsPerRevolution) + stepsPerRevolution, stepsPerRevolution);
+    desiredPosition = angleToSteps(headingRequested);
+    stepsToMove = smallestAngle(currentPosition, desiredPosition, stepsPerRevolution);
+    if (speedNeeded) {
+      if (speedNeeded > 200) {
+        digitalWrite(PIN_PROCESS, HIGH);
+        headingStepper.move(stepsToMove*accelRatio);  // predicting where it's going
+      } else {
+        digitalWrite(PIN_PROCESS, LOW);
+        headingStepper.move(stepsToMove);
+      }
+    }
   }
 }
