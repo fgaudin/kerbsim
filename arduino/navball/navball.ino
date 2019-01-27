@@ -1,21 +1,24 @@
 #include <AccelStepper.h>
 #include <math.h>
 
-#define HALFSTEP 4
-#define PIN_OVERFLOW 3
-#define PIN_PROCESS 2
-#define PIN_HEADING_1 8
-#define PIN_HEADING_2 10
-#define PIN_HEADING_3 9
-#define PIN_HEADING_4 11
+#define PIN_OVERFLOW 7
+#define PIN_PROCESS 6
+#define PIN_HEADING_1 2
+#define PIN_HEADING_2 3
+#define PIN_HEADING_3 4
+#define PIN_HEADING_4 5
+#define PIN_PITCH_1 8
+#define PIN_PITCH_2 9
 
-const int internalStepsPerRev = 64;  // instead of 32 because half-step mode
+const int internalStepsPerRev = 32;  // 32 for fullstep, 64 for halfstep
 const float internalGearRatio = 64;
 const float externalGearRatio = 1.0;
 const float stepsPerRevolution = internalStepsPerRev * internalGearRatio * externalGearRatio;
-const int accelRatio = 8;
+const int accelRatio = 4;
 
-AccelStepper  headingStepper(AccelStepper::HALF4WIRE, PIN_HEADING_1, PIN_HEADING_2, PIN_HEADING_3, PIN_HEADING_4);
+//AccelStepper  headingStepper(AccelStepper::HALF4WIRE, PIN_HEADING_1, PIN_HEADING_3, PIN_HEADING_2, PIN_HEADING_4);
+AccelStepper  headingStepper(AccelStepper::FULL2WIRE, PIN_HEADING_1, PIN_HEADING_2);
+AccelStepper  pitchStepper(AccelStepper::FULL2WIRE, PIN_PITCH_1, PIN_PITCH_2);
 
 const byte numChars = 32;
 char receivedChars[numChars];
@@ -34,6 +37,8 @@ void setup() {
   dataTest();
   headingStepper.setMaxSpeed(stepsPerRevolution/2);
   headingStepper.setAcceleration(stepsPerRevolution/accelRatio);
+  pitchStepper.setMaxSpeed(stepsPerRevolution/2);
+  pitchStepper.setAcceleration(stepsPerRevolution/accelRatio);
   Serial.begin(115200);
 
 }
@@ -61,6 +66,7 @@ void loop() {
   parseData();
   process();
   headingStepper.run();
+  pitchStepper.run();
 }
 
 void receiveData() {
@@ -121,6 +127,7 @@ void process() {
     packetReceived = false;
     rateOk();
     moveMotor(&headingStepper, headingRequested, &heading);
+    moveMotor(&pitchStepper, pitchRequested, &pitch);
   }
 }
 
@@ -172,7 +179,7 @@ void moveMotor(AccelStepper* stepper, float requested, float * current) {
     currentPosition = fmod(fmod(stepper->currentPosition(), stepsPerRevolution) + stepsPerRevolution, stepsPerRevolution);
     desiredPosition = angleToSteps(requested);
     stepsToMove = smallestAngle(currentPosition, desiredPosition, stepsPerRevolution);
-    if (speedNeeded and speedNeeded > 512) {
+    if (speedNeeded and speedNeeded > 8*internalStepsPerRev) {
       digitalWrite(PIN_PROCESS, HIGH);
       stepper->move(stepsToMove*accelRatio);  // predicting where it's going
     } else {
