@@ -1,24 +1,31 @@
 #include <AccelStepper.h>
 #include <math.h>
 
-#define PIN_OVERFLOW 7
-#define PIN_PROCESS 6
+#define PIN_OVERFLOW 10
+
 #define PIN_HEADING_1 2
 #define PIN_HEADING_2 3
 #define PIN_HEADING_3 4
 #define PIN_HEADING_4 5
-#define PIN_PITCH_1 8
-#define PIN_PITCH_2 9
+#define PIN_PITCH_1 6
+#define PIN_PITCH_2 7
+#define PIN_PITCH_3 8
+#define PIN_PITCH_4 9
 
-const int internalStepsPerRev = 32;  // 32 for fullstep, 64 for halfstep
+#define LATCH 11
+#define LOAD 12
+#define CLOCK 13
+
+const int internalStepsPerRev = 64;  // 32 for fullstep, 64 for halfstep
 const float internalGearRatio = 64;
 const float externalGearRatio = 1.0;
 const float stepsPerRevolution = internalStepsPerRev * internalGearRatio * externalGearRatio;
 const int accelRatio = 4;
 
-//AccelStepper  headingStepper(AccelStepper::HALF4WIRE, PIN_HEADING_1, PIN_HEADING_3, PIN_HEADING_2, PIN_HEADING_4);
-AccelStepper  headingStepper(AccelStepper::FULL2WIRE, PIN_HEADING_1, PIN_HEADING_2);
-AccelStepper  pitchStepper(AccelStepper::FULL2WIRE, PIN_PITCH_1, PIN_PITCH_2);
+AccelStepper  headingStepper(AccelStepper::HALF4WIRE, PIN_HEADING_1, PIN_HEADING_3, PIN_HEADING_2, PIN_HEADING_4);
+//AccelStepper  headingStepper(AccelStepper::FULL2WIRE, PIN_HEADING_1, PIN_HEADING_2);
+AccelStepper  pitchStepper(AccelStepper::HALF4WIRE, PIN_PITCH_1, PIN_PITCH_3, PIN_PITCH_2, PIN_PITCH_4);
+//AccelStepper  pitchStepper(AccelStepper::FULL2WIRE, PIN_PITCH_1, PIN_PITCH_2);
 
 const byte numChars = 32;
 char receivedChars[numChars];
@@ -32,8 +39,10 @@ float pitchRequested = 0, headingRequested = 0, rollRequested = 0;
 unsigned long lastTime;
 
 void setup() {
+  pinMode(LATCH, OUTPUT);
+  pinMode(LOAD, OUTPUT);
+  pinMode(CLOCK, OUTPUT);
   pinMode(PIN_OVERFLOW, OUTPUT);
-  pinMode(PIN_PROCESS, OUTPUT);
   dataTest();
   headingStepper.setMaxSpeed(stepsPerRevolution/2);
   headingStepper.setAcceleration(stepsPerRevolution/accelRatio);
@@ -61,12 +70,28 @@ void dataTest() {
   }
 }
 
+void loadRegister() {
+  digitalWrite(LOAD, LOW);
+  digitalWrite(LOAD, HIGH);
+}
+
+void transferAndLatch() {
+  for (int i=0; i<8; i++){
+    digitalWrite(CLOCK, LOW);
+    digitalWrite(CLOCK, HIGH);
+  }
+  digitalWrite(LATCH, HIGH);
+  digitalWrite(LATCH, LOW);
+}
+
 void loop() {
   receiveData();
   parseData();
   process();
   headingStepper.run();
   pitchStepper.run();
+  loadRegister();
+  transferAndLatch();
 }
 
 void receiveData() {
@@ -180,10 +205,8 @@ void moveMotor(AccelStepper* stepper, float requested, float * current) {
     desiredPosition = angleToSteps(requested);
     stepsToMove = smallestAngle(currentPosition, desiredPosition, stepsPerRevolution);
     if (speedNeeded and speedNeeded > 8*internalStepsPerRev) {
-      digitalWrite(PIN_PROCESS, HIGH);
       stepper->move(stepsToMove*accelRatio);  // predicting where it's going
     } else {
-      digitalWrite(PIN_PROCESS, LOW);
       stepper->move(stepsToMove);
     }
   }
