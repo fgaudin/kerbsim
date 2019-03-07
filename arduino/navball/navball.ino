@@ -37,7 +37,7 @@ float pitchRequested = 0, headingRequested = 0, rollRequested = 0;
 
 int testDelay = 0;
 
-unsigned long lastTime;
+unsigned long lastTimeHeading = 0, lastTimePitch = 0, lastTimeRoll = 0;
 
 unsigned long lastHeadingCalibration = 0, lastPitchCalibration = 0, lastRollCalibration = 0;
 
@@ -115,7 +115,7 @@ void calibrate() {
 }
 
 void testData(){
-  float step = 3.0;
+  float step = 0.05;
   packetReceived = true;
   headingRequested = fmod(heading + step, 360);
   pitchRequested = fmod(pitch + step, 360);
@@ -191,8 +191,8 @@ void process() {
     // we can let another packet come in
     packetReceived = false;
     rateOk();
-    moveMotor(&headingStepper, headingRequested, &heading);
-    moveMotor(&pitchStepper, pitchRequested, &pitch);
+    moveMotor(&headingStepper, headingRequested, &heading, &lastTimeHeading);
+    moveMotor(&pitchStepper, pitchRequested, &pitch, &lastTimePitch);
   }
 }
 
@@ -219,7 +219,7 @@ float rpm(float angle, float duration_sec) {
   return abs((angle * 60 / duration_sec) / 360);
 }
 
-void moveMotor(AccelStepper* stepper, float requested, float * current) {
+void moveMotor(AccelStepper* stepper, float requested, float * current, unsigned long *lastTime) {
   float delta;
   int stepsToMove;
 
@@ -234,11 +234,11 @@ void moveMotor(AccelStepper* stepper, float requested, float * current) {
     currentTime = millis();
     delta = smallestAngle(*current, requested, 360);
     deltaSteps = angleToSteps(delta);
-    if (lastTime) {
-      secSinceLastMove = (currentTime - lastTime) / 1000.0;
+    if (*lastTime) {
+      secSinceLastMove = (currentTime - *lastTime) / 1000.0;
       speedNeeded = abs(round(deltaSteps / secSinceLastMove));
     }
-    lastTime = currentTime;
+    *lastTime = currentTime;
     *current = requested;
     
     currentPosition = fmod(fmod(stepper->currentPosition(), stepsPerRevolution) + stepsPerRevolution, stepsPerRevolution);
