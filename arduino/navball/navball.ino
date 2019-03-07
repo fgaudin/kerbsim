@@ -1,8 +1,6 @@
 #include <AccelStepper.h>
 #include <math.h>
 
-#define PIN_OVERFLOW 10
-
 #define PIN_HEADING_1 2
 #define PIN_HEADING_2 3
 #define PIN_HEADING_3 4
@@ -12,6 +10,7 @@
 #define PIN_PITCH_3 8
 #define PIN_PITCH_4 9
 
+#define DATA 10
 #define LATCH 11
 #define LOAD 12
 #define CLOCK 13
@@ -36,28 +35,35 @@ boolean packetReceived = false;
 float pitch = 0, heading = 0, roll = 0;
 float pitchRequested = 0, headingRequested = 0, rollRequested = 0;
 
+int testDelay = 0;
+
 unsigned long lastTime;
 
+unsigned long lastHeadingCalibration = 0, lastPitchCalibration = 0, lastRollCalibration = 0;
+
+int data = 0;
+
 void setup() {
+  pinMode(DATA, INPUT);
   pinMode(LATCH, OUTPUT);
   pinMode(LOAD, OUTPUT);
   pinMode(CLOCK, OUTPUT);
-  pinMode(PIN_OVERFLOW, OUTPUT);
+  //pinMode(PIN_OVERFLOW, OUTPUT);
+  pinMode(A0, OUTPUT);
   dataTest();
   headingStepper.setMaxSpeed(stepsPerRevolution/2);
   headingStepper.setAcceleration(stepsPerRevolution/accelRatio);
   pitchStepper.setMaxSpeed(stepsPerRevolution/2);
   pitchStepper.setAcceleration(stepsPerRevolution/accelRatio);
   Serial.begin(115200);
-
 }
 
 void rateOk() {
-  digitalWrite(PIN_OVERFLOW, LOW);
+  //digitalWrite(PIN_OVERFLOW, LOW);
 }
 
 void rateKo() {
-  digitalWrite(PIN_OVERFLOW, HIGH);
+  //digitalWrite(PIN_OVERFLOW, HIGH);
 }
 
 void dataTest() {
@@ -76,7 +82,11 @@ void loadRegister() {
 }
 
 void transferAndLatch() {
+  int dataBit = B0;
+  data = B00000000;
   for (int i=0; i<8; i++){
+    dataBit = digitalRead(DATA);
+    data = data | (dataBit << (7 - i));
     digitalWrite(CLOCK, LOW);
     digitalWrite(CLOCK, HIGH);
   }
@@ -84,14 +94,44 @@ void transferAndLatch() {
   digitalWrite(LATCH, LOW);
 }
 
+void calibrate() {
+  unsigned long currentTime = millis();
+
+  if ((! (data & B1)) && (currentTime - lastHeadingCalibration) > 200) {
+    heading = 0;
+    headingStepper.setCurrentPosition(0);
+    digitalWrite(A0, HIGH);
+    lastHeadingCalibration = currentTime;
+  }
+  if ((!(data & B10)) && (currentTime - lastPitchCalibration) > 200) {
+    pitch = 0;
+    pitchStepper.setCurrentPosition(0);
+    digitalWrite(A0, HIGH);
+    lastPitchCalibration = currentTime;
+  }
+  if ((currentTime - lastHeadingCalibration) > 1000 && (currentTime - lastPitchCalibration) > 1000) {
+    digitalWrite(A0, LOW);
+  }
+}
+
+void testData(){
+  float step = 3.0;
+  packetReceived = true;
+  headingRequested = fmod(heading + step, 360);
+  pitchRequested = fmod(pitch + step, 360);
+  rollRequested = fmod(roll + step, 360);
+}
+
 void loop() {
   receiveData();
   parseData();
+  //testData();
   process();
   headingStepper.run();
   pitchStepper.run();
   loadRegister();
   transferAndLatch();
+  calibrate();
 }
 
 void receiveData() {
