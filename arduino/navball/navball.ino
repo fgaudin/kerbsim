@@ -123,9 +123,9 @@ void testData(){
 }
 
 void loop() {
-  receiveData();
-  parseData();
-  //testData();
+  //receiveData();
+  //parseData();
+  testData();
   process();
   headingStepper.run();
   pitchStepper.run();
