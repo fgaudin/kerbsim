@@ -424,12 +424,12 @@ Wire Wire Line
 $Comp
 L power:GND #PWR?
 U 1 1 5C99D6AF
-P 3400 4850
-F 0 "#PWR?" H 3400 4600 50  0001 C CNN
-F 1 "GND" H 3405 4677 50  0000 C CNN
-F 2 "" H 3400 4850 50  0001 C CNN
-F 3 "" H 3400 4850 50  0001 C CNN
-	1    3400 4850
+P 3400 4750
+F 0 "#PWR?" H 3400 4500 50  0001 C CNN
+F 1 "GND" H 3405 4577 50  0000 C CNN
+F 2 "" H 3400 4750 50  0001 C CNN
+F 3 "" H 3400 4750 50  0001 C CNN
+	1    3400 4750
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -476,23 +476,6 @@ F 3 "~" H 1900 4700 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	2050 4700 2150 4700
-Wire Wire Line
-	3400 4700 3400 4750
-Wire Wire Line
-	3400 4700 3400 4650
-Connection ~ 3400 4700
-Connection ~ 3400 4300
-Wire Wire Line
-	3400 4300 3400 4250
-Connection ~ 3400 4400
-Wire Wire Line
-	3400 4400 3400 4350
-Connection ~ 3400 4500
-Wire Wire Line
-	3400 4500 3400 4450
-Connection ~ 3400 4600
-Wire Wire Line
-	3400 4600 3400 4550
 $Comp
 L power:+5V #PWR?
 U 1 1 5CA15B15
@@ -767,31 +750,14 @@ Wire Wire Line
 $Comp
 L navball:SN74HC165 U?
 U 1 1 5C949D3B
-P 3850 4350
-F 0 "U?" H 3825 5215 50  0000 C CNN
-F 1 "SN74HC165" H 3825 5124 50  0000 C CNN
-F 2 "" H 3850 5100 50  0001 C CNN
-F 3 "" H 3850 5100 50  0001 C CNN
-	1    3850 4350
+P 3850 4200
+F 0 "U?" H 3825 5065 50  0000 C CNN
+F 1 "SN74HC165" H 3825 4974 50  0000 C CNN
+F 2 "" H 3850 4950 50  0001 C CNN
+F 3 "" H 3850 4950 50  0001 C CNN
+	1    3850 4200
 	1    0    0    -1  
 $EndComp
-Connection ~ 3400 4250
-Wire Wire Line
-	3400 4250 3400 4200
-Connection ~ 3400 4350
-Wire Wire Line
-	3400 4350 3400 4300
-Connection ~ 3400 4450
-Wire Wire Line
-	3400 4450 3400 4400
-Wire Wire Line
-	4250 4750 4250 4850
-Connection ~ 3400 4550
-Wire Wire Line
-	3400 4550 3400 4500
-Connection ~ 3400 4650
-Wire Wire Line
-	3400 4650 3400 4600
 $Comp
 L navball:Photointerrupter U?
 U 1 1 5C94CD29
@@ -814,4 +780,23 @@ F 3 "" H 2450 4950 50  0001 C CNN
 	1    2450 4750
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	3400 4200 3400 4300
+Connection ~ 3400 4300
+Wire Wire Line
+	3400 4300 3400 4400
+Connection ~ 3400 4400
+Wire Wire Line
+	3400 4400 3400 4500
+Connection ~ 3400 4500
+Wire Wire Line
+	3400 4500 3400 4600
+Connection ~ 3400 4600
+Wire Wire Line
+	3400 4600 3400 4700
+Connection ~ 3400 4700
+Wire Wire Line
+	3400 4700 3400 4750
+Wire Wire Line
+	4250 4600 4250 4850
 $EndSCHEMATC
