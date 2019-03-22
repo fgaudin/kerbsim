@@ -259,11 +259,11 @@ X C 3 100 200 100 D 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# fga_Photointerrupter
+# navball_Photointerrupter
 #
-DEF fga_Photointerrupter U 0 40 Y Y 1 F N
+DEF navball_Photointerrupter U 0 40 Y Y 1 F N
 F0 "U" 0 200 50 H V C CNN
-F1 "fga_Photointerrupter" 0 -250 50 H V C CNN
+F1 "navball_Photointerrupter" 0 -250 50 H V C CNN
 F2 "" 0 200 50 H I C CNN
 F3 "" 0 200 50 H I C CNN
 DRAW
@@ -285,11 +285,11 @@ X D 4 300 -100 100 L 50 50 1 1 I
 ENDDRAW
 ENDDEF
 #
-# fga_SN74HC165
+# navball_SN74HC165
 #
-DEF fga_SN74HC165 U 0 40 Y Y 1 F N
+DEF navball_SN74HC165 U 0 40 Y Y 1 F N
 F0 "U" 0 750 50 H V C CNN
-F1 "fga_SN74HC165" 0 -650 50 H V C CNN
+F1 "navball_SN74HC165" 0 -650 50 H V C CNN
 F2 "" 0 750 50 H I C CNN
 F3 "" 0 750 50 H I C CNN
 DRAW
