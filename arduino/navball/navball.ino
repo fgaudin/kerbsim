@@ -9,22 +9,27 @@
 #define PIN_PITCH_2 7
 #define PIN_PITCH_3 8
 #define PIN_PITCH_4 9
+#define PIN_ROLL_DIR A0
+#define PIN_ROLL_STEP A1
 
 #define DATA 10
 #define LATCH 11
 #define LOAD 12
 #define CLOCK 13
 
+#define DEBUG_FLAG 0
+#define DEBUG_DELAY 0
+
 const int internalStepsPerRev = 64;  // 32 for fullstep, 64 for halfstep
 const float internalGearRatio = 64;
 const float externalGearRatio = 1.0;
 const float stepsPerRevolution = internalStepsPerRev * internalGearRatio * externalGearRatio;
+const float nema17StepsPerRevolution = 200;
 const int accelRatio = 4;
 
 AccelStepper  headingStepper(AccelStepper::HALF4WIRE, PIN_HEADING_1, PIN_HEADING_3, PIN_HEADING_2, PIN_HEADING_4);
-//AccelStepper  headingStepper(AccelStepper::FULL2WIRE, PIN_HEADING_1, PIN_HEADING_2);
 AccelStepper  pitchStepper(AccelStepper::HALF4WIRE, PIN_PITCH_1, PIN_PITCH_3, PIN_PITCH_2, PIN_PITCH_4);
-//AccelStepper  pitchStepper(AccelStepper::FULL2WIRE, PIN_PITCH_1, PIN_PITCH_2);
+AccelStepper  rollStepper(AccelStepper::DRIVER, PIN_ROLL_STEP, PIN_ROLL_DIR);
 
 const byte numChars = 32;
 char receivedChars[numChars];
@@ -34,8 +39,6 @@ boolean packetReceived = false;
 
 float pitch = 0, heading = 0, roll = 0;
 float pitchRequested = 0, headingRequested = 0, rollRequested = 0;
-
-int testDelay = 0;
 
 unsigned long lastTimeHeading = 0, lastTimePitch = 0, lastTimeRoll = 0;
 
@@ -48,37 +51,34 @@ void setup() {
   pinMode(LATCH, OUTPUT);
   pinMode(LOAD, OUTPUT);
   pinMode(CLOCK, OUTPUT);
-  //pinMode(PIN_OVERFLOW, OUTPUT);
-  pinMode(A0, OUTPUT);
-  dataTest();
   headingStepper.setMaxSpeed(stepsPerRevolution/2);
   headingStepper.setAcceleration(stepsPerRevolution/accelRatio);
   pitchStepper.setMaxSpeed(stepsPerRevolution/2);
   pitchStepper.setAcceleration(stepsPerRevolution/accelRatio);
+  rollStepper.setMaxSpeed(nema17StepsPerRevolution*2);
+  rollStepper.setAcceleration(nema17StepsPerRevolution/accelRatio);
   Serial.begin(115200);
 }
 
-void rateOk() {
-  //digitalWrite(PIN_OVERFLOW, LOW);
-}
-
-void rateKo() {
-  //digitalWrite(PIN_OVERFLOW, HIGH);
-}
-
-void dataTest() {
-  rateOk();
-  for (int i = 0; i < 3; i++) {
-    rateKo();
-    delay(200);
-    rateOk();
-    delay(200);
+void debugDelay() {
+  if (DEBUG_DELAY) {
+    delay(DEBUG_DELAY);
   }
+}
+
+void clk() {
+  digitalWrite(CLOCK, LOW);
+  digitalWrite(CLOCK, HIGH);
 }
 
 void loadRegister() {
   digitalWrite(LOAD, LOW);
   digitalWrite(LOAD, HIGH);
+}
+
+void latch() {
+  digitalWrite(LATCH, HIGH);
+  digitalWrite(LATCH, LOW);
 }
 
 void transferAndLatch() {
@@ -87,11 +87,9 @@ void transferAndLatch() {
   for (int i=0; i<8; i++){
     dataBit = digitalRead(DATA);
     data = data | (dataBit << (7 - i));
-    digitalWrite(CLOCK, LOW);
-    digitalWrite(CLOCK, HIGH);
+    clk();
   }
-  digitalWrite(LATCH, HIGH);
-  digitalWrite(LATCH, LOW);
+  latch();
 }
 
 void calibrate() {
@@ -100,17 +98,12 @@ void calibrate() {
   if ((! (data & B1)) && (currentTime - lastHeadingCalibration) > 200) {
     heading = 0;
     headingStepper.setCurrentPosition(0);
-    digitalWrite(A0, HIGH);
     lastHeadingCalibration = currentTime;
   }
   if ((!(data & B10)) && (currentTime - lastPitchCalibration) > 200) {
     pitch = 0;
     pitchStepper.setCurrentPosition(0);
-    digitalWrite(A0, HIGH);
     lastPitchCalibration = currentTime;
-  }
-  if ((currentTime - lastHeadingCalibration) > 1000 && (currentTime - lastPitchCalibration) > 1000) {
-    digitalWrite(A0, LOW);
   }
 }
 
@@ -123,12 +116,13 @@ void testData(){
 }
 
 void loop() {
-  //receiveData();
-  //parseData();
-  testData();
+  //testData();
+  receiveData();
+  parseData();
   process();
   headingStepper.run();
   pitchStepper.run();
+  rollStepper.run();
   loadRegister();
   transferAndLatch();
   calibrate();
@@ -144,7 +138,7 @@ void receiveData() {
       // first packet hasn't be handled yet
       // and we're already receiving another one
       // discarding the previous one
-      rateKo();
+      // rateKo();
       packetReceived = false;
     }
     rc = Serial.read();
@@ -190,9 +184,10 @@ void process() {
   if (packetReceived) {
     // we can let another packet come in
     packetReceived = false;
-    rateOk();
-    moveMotor(&headingStepper, headingRequested, &heading, &lastTimeHeading);
-    moveMotor(&pitchStepper, pitchRequested, &pitch, &lastTimePitch);
+    // rateOk();
+    moveMotor(&headingStepper, headingRequested, &heading, &lastTimeHeading, stepsPerRevolution);
+    moveMotor(&pitchStepper, pitchRequested, &pitch, &lastTimePitch, stepsPerRevolution);
+    moveMotor(&rollStepper, rollRequested, &roll, &lastTimeRoll, nema17StepsPerRevolution);
   }
 }
 
@@ -207,19 +202,19 @@ float smallestAngle(float origin, float target, int revolution) {
   return delta;
 }
 
-int angleToSteps(float angle) {
-  return round(angle * stepsPerRevolution / 360);
+int angleToSteps(float angle, int stepsPerRev) {
+  return round(angle * stepsPerRev / 360);
 }
 
-float stepsToAngle(int steps) {
-  return steps * 360.0 / stepsPerRevolution;
+float stepsToAngle(int steps, int stepsPerRev) {
+  return steps * 360.0 / stepsPerRev;
 }
 
 float rpm(float angle, float duration_sec) {
   return abs((angle * 60 / duration_sec) / 360);
 }
 
-void moveMotor(AccelStepper* stepper, float requested, float * current, unsigned long *lastTime) {
+void moveMotor(AccelStepper* stepper, float requested, float * current, unsigned long *lastTime, int stepsPerRev) {
   float delta;
   int stepsToMove;
 
@@ -233,7 +228,7 @@ void moveMotor(AccelStepper* stepper, float requested, float * current, unsigned
   if (requested != *current) {
     currentTime = millis();
     delta = smallestAngle(*current, requested, 360);
-    deltaSteps = angleToSteps(delta);
+    deltaSteps = angleToSteps(delta, stepsPerRev);
     if (*lastTime) {
       secSinceLastMove = (currentTime - *lastTime) / 1000.0;
       speedNeeded = abs(round(deltaSteps / secSinceLastMove));
@@ -241,10 +236,10 @@ void moveMotor(AccelStepper* stepper, float requested, float * current, unsigned
     *lastTime = currentTime;
     *current = requested;
     
-    currentPosition = fmod(fmod(stepper->currentPosition(), stepsPerRevolution) + stepsPerRevolution, stepsPerRevolution);
-    desiredPosition = angleToSteps(requested);
-    stepsToMove = smallestAngle(currentPosition, desiredPosition, stepsPerRevolution);
-    if (speedNeeded and speedNeeded > 8*internalStepsPerRev) {
+    currentPosition = fmod(fmod(stepper->currentPosition(), stepsPerRevolution) + stepsPerRevolution, stepsPerRev);
+    desiredPosition = angleToSteps(requested, stepsPerRev);
+    stepsToMove = smallestAngle(currentPosition, desiredPosition, stepsPerRev);
+    if (speedNeeded and speedNeeded > stepsPerRev/8) {
       stepper->move(stepsToMove*accelRatio);  // predicting where it's going
     } else {
       stepper->move(stepsToMove);

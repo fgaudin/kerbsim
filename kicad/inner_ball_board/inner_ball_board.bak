@@ -424,12 +424,12 @@ Wire Wire Line
 $Comp
 L power:GND #PWR?
 U 1 1 5C99D6AF
-P 3400 4850
-F 0 "#PWR?" H 3400 4600 50  0001 C CNN
-F 1 "GND" H 3405 4677 50  0000 C CNN
-F 2 "" H 3400 4850 50  0001 C CNN
-F 3 "" H 3400 4850 50  0001 C CNN
-	1    3400 4850
+P 3400 4750
+F 0 "#PWR?" H 3400 4500 50  0001 C CNN
+F 1 "GND" H 3405 4577 50  0000 C CNN
+F 2 "" H 3400 4750 50  0001 C CNN
+F 3 "" H 3400 4750 50  0001 C CNN
+	1    3400 4750
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -476,23 +476,6 @@ F 3 "~" H 1900 4700 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	2050 4700 2150 4700
-Wire Wire Line
-	3400 4700 3400 4750
-Wire Wire Line
-	3400 4700 3400 4650
-Connection ~ 3400 4700
-Connection ~ 3400 4300
-Wire Wire Line
-	3400 4300 3400 4250
-Connection ~ 3400 4400
-Wire Wire Line
-	3400 4400 3400 4350
-Connection ~ 3400 4500
-Wire Wire Line
-	3400 4500 3400 4450
-Connection ~ 3400 4600
-Wire Wire Line
-	3400 4600 3400 4550
 $Comp
 L power:+5V #PWR?
 U 1 1 5CA15B15
@@ -691,44 +674,29 @@ $EndComp
 $Comp
 L Device:R R?
 U 1 1 5CA63504
-P 4850 3850
-F 0 "R?" H 4920 3896 50  0000 L CNN
-F 1 "10k" H 4920 3805 50  0000 L CNN
-F 2 "" V 4780 3850 50  0001 C CNN
-F 3 "~" H 4850 3850 50  0001 C CNN
-	1    4850 3850
-	-1   0    0    1   
+P 4900 4000
+F 0 "R?" H 4970 4046 50  0000 L CNN
+F 1 "10k" H 4970 3955 50  0000 L CNN
+F 2 "" V 4830 4000 50  0001 C CNN
+F 3 "~" H 4900 4000 50  0001 C CNN
+	1    4900 4000
+	0    -1   -1   0   
 $EndComp
-$Comp
-L Device:R R?
-U 1 1 5CA682A4
-P 5250 3250
-F 0 "R?" H 5320 3296 50  0000 L CNN
-F 1 "1k" H 5320 3205 50  0000 L CNN
-F 2 "" V 5180 3250 50  0001 C CNN
-F 3 "~" H 5250 3250 50  0001 C CNN
-	1    5250 3250
-	1    0    0    -1  
-$EndComp
-Text GLabel 5250 3100 1    50   Input ~ 0
+Text GLabel 5250 3200 1    50   Input ~ 0
 latch
 $Comp
 L power:GND #PWR?
 U 1 1 5CA6944B
-P 4850 3100
-F 0 "#PWR?" H 4850 2850 50  0001 C CNN
-F 1 "GND" H 4855 2927 50  0000 C CNN
-F 2 "" H 4850 3100 50  0001 C CNN
-F 3 "" H 4850 3100 50  0001 C CNN
-	1    4850 3100
+P 4850 2900
+F 0 "#PWR?" H 4850 2650 50  0001 C CNN
+F 1 "GND" H 4855 2727 50  0000 C CNN
+F 2 "" H 4850 2900 50  0001 C CNN
+F 3 "" H 4850 2900 50  0001 C CNN
+	1    4850 2900
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
 	5250 3400 5150 3400
-Wire Wire Line
-	4850 3100 4850 3200
-Wire Wire Line
-	4850 3600 4850 3700
 Wire Wire Line
 	4250 3750 4300 3750
 Wire Wire Line
@@ -739,8 +707,6 @@ Wire Wire Line
 	4250 3900 4300 3900
 Wire Wire Line
 	4300 3900 4300 4000
-Wire Wire Line
-	4300 4000 4850 4000
 $Comp
 L Device:C_Small C?
 U 1 1 5CAE6ABE
@@ -767,31 +733,14 @@ Wire Wire Line
 $Comp
 L navball:SN74HC165 U?
 U 1 1 5C949D3B
-P 3850 4350
-F 0 "U?" H 3825 5215 50  0000 C CNN
-F 1 "SN74HC165" H 3825 5124 50  0000 C CNN
-F 2 "" H 3850 5100 50  0001 C CNN
-F 3 "" H 3850 5100 50  0001 C CNN
-	1    3850 4350
+P 3850 4200
+F 0 "U?" H 3825 5065 50  0000 C CNN
+F 1 "SN74HC165" H 3825 4974 50  0000 C CNN
+F 2 "" H 3850 4950 50  0001 C CNN
+F 3 "" H 3850 4950 50  0001 C CNN
+	1    3850 4200
 	1    0    0    -1  
 $EndComp
-Connection ~ 3400 4250
-Wire Wire Line
-	3400 4250 3400 4200
-Connection ~ 3400 4350
-Wire Wire Line
-	3400 4350 3400 4300
-Connection ~ 3400 4450
-Wire Wire Line
-	3400 4450 3400 4400
-Wire Wire Line
-	4250 4750 4250 4850
-Connection ~ 3400 4550
-Wire Wire Line
-	3400 4550 3400 4500
-Connection ~ 3400 4650
-Wire Wire Line
-	3400 4650 3400 4600
 $Comp
 L navball:Photointerrupter U?
 U 1 1 5C94CD29
@@ -814,4 +763,60 @@ F 3 "" H 2450 4950 50  0001 C CNN
 	1    2450 4750
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	3400 4200 3400 4300
+Connection ~ 3400 4300
+Wire Wire Line
+	3400 4300 3400 4400
+Connection ~ 3400 4400
+Wire Wire Line
+	3400 4400 3400 4500
+Connection ~ 3400 4500
+Wire Wire Line
+	3400 4500 3400 4600
+Connection ~ 3400 4600
+Wire Wire Line
+	3400 4600 3400 4700
+Connection ~ 3400 4700
+Wire Wire Line
+	3400 4700 3400 4750
+Wire Wire Line
+	4250 4600 4250 4850
+$Comp
+L power:+5V #PWR?
+U 1 1 5CA196B4
+P 5150 3900
+F 0 "#PWR?" H 5150 3750 50  0001 C CNN
+F 1 "+5V" H 5165 4073 50  0000 C CNN
+F 2 "" H 5150 3900 50  0001 C CNN
+F 3 "" H 5150 3900 50  0001 C CNN
+	1    5150 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5050 4000 5150 4000
+Wire Wire Line
+	5150 4000 5150 3900
+Wire Wire Line
+	4300 4000 4650 4000
+Connection ~ 4650 4000
+Wire Wire Line
+	4650 4000 4750 4000
+Wire Wire Line
+	4650 3600 4850 3600
+$Comp
+L Device:R R?
+U 1 1 5CA40983
+P 4850 3050
+F 0 "R?" H 4920 3096 50  0000 L CNN
+F 1 "1k" H 4920 3005 50  0000 L CNN
+F 2 "" V 4780 3050 50  0001 C CNN
+F 3 "~" H 4850 3050 50  0001 C CNN
+	1    4850 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5250 3400 5250 3200
+Wire Wire Line
+	4650 3600 4650 4000
 $EndSCHEMATC

@@ -47,8 +47,6 @@ F 3 "" H 7650 4850 50  0001 C CNN
 	1    7650 4850
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	7650 4700 7650 4800
 $Comp
 L Transistor_Array:ULN2803A U?
 U 1 1 5C9089AA
@@ -381,25 +379,12 @@ F 3 "" H 4550 4550 50  0001 C CNN
 	1    4550 4550
 	1    0    0    -1  
 $EndComp
-$Comp
-L Device:C_Small C?
-U 1 1 5C984BD5
-P 4550 4750
-F 0 "C?" H 4642 4796 50  0000 L CNN
-F 1 "0.1uF" H 4642 4705 50  0000 L CNN
-F 2 "" H 4550 4750 50  0001 C CNN
-F 3 "~" H 4550 4750 50  0001 C CNN
-	1    4550 4750
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	4550 4950 4550 4850
-Connection ~ 4550 4850
 Wire Wire Line
 	4400 4650 4550 4650
 Wire Wire Line
 	4550 4650 4550 4550
-Connection ~ 4550 4650
 Text GLabel 4250 3600 2    50   Input ~ 0
 clock
 $Comp
@@ -674,44 +659,29 @@ $EndComp
 $Comp
 L Device:R R?
 U 1 1 5CA63504
-P 4850 3850
-F 0 "R?" H 4920 3896 50  0000 L CNN
-F 1 "10k" H 4920 3805 50  0000 L CNN
-F 2 "" V 4780 3850 50  0001 C CNN
-F 3 "~" H 4850 3850 50  0001 C CNN
-	1    4850 3850
-	-1   0    0    1   
+P 4900 4000
+F 0 "R?" H 4970 4046 50  0000 L CNN
+F 1 "10k" H 4970 3955 50  0000 L CNN
+F 2 "" V 4830 4000 50  0001 C CNN
+F 3 "~" H 4900 4000 50  0001 C CNN
+	1    4900 4000
+	0    -1   -1   0   
 $EndComp
-$Comp
-L Device:R R?
-U 1 1 5CA682A4
-P 5250 3250
-F 0 "R?" H 5320 3296 50  0000 L CNN
-F 1 "1k" H 5320 3205 50  0000 L CNN
-F 2 "" V 5180 3250 50  0001 C CNN
-F 3 "~" H 5250 3250 50  0001 C CNN
-	1    5250 3250
-	1    0    0    -1  
-$EndComp
-Text GLabel 5250 3100 1    50   Input ~ 0
+Text GLabel 5250 3200 1    50   Input ~ 0
 latch
 $Comp
 L power:GND #PWR?
 U 1 1 5CA6944B
-P 4850 3100
-F 0 "#PWR?" H 4850 2850 50  0001 C CNN
-F 1 "GND" H 4855 2927 50  0000 C CNN
-F 2 "" H 4850 3100 50  0001 C CNN
-F 3 "" H 4850 3100 50  0001 C CNN
-	1    4850 3100
+P 4850 2900
+F 0 "#PWR?" H 4850 2650 50  0001 C CNN
+F 1 "GND" H 4855 2727 50  0000 C CNN
+F 2 "" H 4850 2900 50  0001 C CNN
+F 3 "" H 4850 2900 50  0001 C CNN
+	1    4850 2900
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
 	5250 3400 5150 3400
-Wire Wire Line
-	4850 3100 4850 3200
-Wire Wire Line
-	4850 3600 4850 3700
 Wire Wire Line
 	4250 3750 4300 3750
 Wire Wire Line
@@ -722,31 +692,6 @@ Wire Wire Line
 	4250 3900 4300 3900
 Wire Wire Line
 	4300 3900 4300 4000
-Wire Wire Line
-	4300 4000 4850 4000
-$Comp
-L Device:C_Small C?
-U 1 1 5CAE6ABE
-P 6500 4050
-F 0 "C?" H 6592 4096 50  0000 L CNN
-F 1 "0.1uF" H 6592 4005 50  0000 L CNN
-F 2 "" H 6500 4050 50  0001 C CNN
-F 3 "~" H 6500 4050 50  0001 C CNN
-	1    6500 4050
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7350 3400 6500 3400
-Wire Wire Line
-	6500 3400 6500 3950
-Connection ~ 7350 3400
-Wire Wire Line
-	6500 4150 6500 4800
-Wire Wire Line
-	6500 4800 7650 4800
-Connection ~ 7650 4800
-Wire Wire Line
-	7650 4800 7650 4850
 $Comp
 L navball:SN74HC165 U?
 U 1 1 5C949D3B
@@ -799,4 +744,43 @@ Wire Wire Line
 	3400 4700 3400 4750
 Wire Wire Line
 	4250 4600 4250 4850
+$Comp
+L power:+5V #PWR?
+U 1 1 5CA196B4
+P 5150 3900
+F 0 "#PWR?" H 5150 3750 50  0001 C CNN
+F 1 "+5V" H 5165 4073 50  0000 C CNN
+F 2 "" H 5150 3900 50  0001 C CNN
+F 3 "" H 5150 3900 50  0001 C CNN
+	1    5150 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5050 4000 5150 4000
+Wire Wire Line
+	5150 4000 5150 3900
+Wire Wire Line
+	4300 4000 4650 4000
+Connection ~ 4650 4000
+Wire Wire Line
+	4650 4000 4750 4000
+Wire Wire Line
+	4650 3600 4850 3600
+$Comp
+L Device:R R?
+U 1 1 5CA40983
+P 4850 3050
+F 0 "R?" H 4920 3096 50  0000 L CNN
+F 1 "1k" H 4920 3005 50  0000 L CNN
+F 2 "" V 4780 3050 50  0001 C CNN
+F 3 "~" H 4850 3050 50  0001 C CNN
+	1    4850 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5250 3400 5250 3200
+Wire Wire Line
+	4650 3600 4650 4000
+Wire Wire Line
+	7650 4700 7650 4850
 $EndSCHEMATC
