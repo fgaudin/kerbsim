@@ -24,7 +24,7 @@ const int internalStepsPerRev = 64;  // 32 for fullstep, 64 for halfstep
 const float internalGearRatio = 64;
 const float externalGearRatio = 1.0;
 const float stepsPerRevolution = internalStepsPerRev * internalGearRatio * externalGearRatio;
-const float nema17StepsPerRevolution = 200;
+const float nema17StepsPerRevolution = 400;
 const int accelRatio = 4;
 
 AccelStepper  headingStepper(AccelStepper::HALF4WIRE, PIN_HEADING_1, PIN_HEADING_3, PIN_HEADING_2, PIN_HEADING_4);
