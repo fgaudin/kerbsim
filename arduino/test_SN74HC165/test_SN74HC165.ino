@@ -1,51 +1,53 @@
 
-#define CLOCK_PIN 2
-#define LATCH_PIN 3
-#define A_PIN 4
-#define B_PIN 5
-#define C_PIN 6
-#define D_PIN 7
-#define E_PIN 8
-#define F_PIN 9
-#define G_PIN 10
-#define H_PIN 11
+
+#define A_PIN 2
+
+#define LOAD_PIN A0
+#define CLOCK_PIN A1
 
 void setup() {
   pinMode(CLOCK_PIN, OUTPUT);
-  pinMode(LATCH_PIN, OUTPUT);
-  pinMode(A_PIN, OUTPUT);
-  pinMode(B_PIN, OUTPUT);
-  pinMode(C_PIN, OUTPUT);
-  pinMode(D_PIN, OUTPUT);
-  pinMode(E_PIN, OUTPUT);
-  pinMode(F_PIN, OUTPUT);
-  pinMode(G_PIN, OUTPUT);
-  pinMode(H_PIN, OUTPUT);
+  pinMode(LOAD_PIN, OUTPUT);
+  for (int i=0; i<8; i++){
+    pinMode(A_PIN+i, OUTPUT);
+  }
+  Serial.begin(57600);
+
+  digitalWrite(CLOCK_PIN, LOW);
+  digitalWrite(LOAD_PIN, HIGH);
 }
 
 void check(int data) {
-  digitalWrite(LATCH_PIN, LOW);
-  digitalWrite(CLOCK_PIN, LOW);
-
+  Serial.println("Setting pins:");
   for (int i=0; i<8; i++){
-    digitalWrite(A_PIN+i, data & (1 << i));
+    int val = (data >> i) & 1;
+    Serial.print(val);
+    digitalWrite(A_PIN+i, val);
   }
+  Serial.println("");
 
   // LOAD
-  digitalWrite(LATCH_PIN, LOW);
-  delay(10);
-  digitalWrite(LATCH_PIN, HIGH);
+  delay(1);
+  digitalWrite(LOAD_PIN, LOW);
+  delay(1);
+  digitalWrite(LOAD_PIN, HIGH);
 
+  Serial.println("Starting clocking");
+  
   for(int i=0; i < 8; i++) {
-    digitalWrite(CLOCK_PIN, HIGH);
-    delay(500);
+    Serial.print("LED  ");
+    Serial.println((data >> (7 - i)) & 1);
+    Serial.flush();
+    delay(2000);
     digitalWrite(CLOCK_PIN, LOW);
-    delay(10);
+    delay(1);
+    digitalWrite(CLOCK_PIN, HIGH);
   }
+
+  delay(2000);
 }
 
 void loop() {
-  check(B01010101);
-  check(B11111111);
-  check(B10101010);
+  check(B10100000);
+  check(B00000101);
 }
